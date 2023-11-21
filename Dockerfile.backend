@@ -1,28 +1,20 @@
-FROM python:3.12-slim-bullseye
+# 使用基于 Debian Bullseye 的 Python 3.10 官方镜像
+FROM python:3.10-slim-bullseye
 
-ENV POETRY_VERSION 1.4.1
-
-# Install system dependencies
-RUN pip install "poetry==$POETRY_VERSION"
-
-# Set work directory
+# 设置容器中的工作目录
 WORKDIR /app
 
-ARG OPENAI_API_KEY
-ENV OPENAI_API_KEY=${OPENAI_API_KEY}
+# 复制 requirements.txt 到容器中
+COPY ./backend/requirements.txt /app/
 
-# Copy only requirements to cache them in docker layer
-COPY ./backend /app/
+# 安装依赖
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Disable the creation of virtual environments
-RUN echo OPENAI_API_KEY=${OPENAI_API_KEY} > /app/.env && \
-    cd /app && \
-    poetry config virtualenvs.create false && \
-    poetry install
+# 将其余的应用程序代码复制到容器中
+COPY ./backend /app
 
+# 暴露应用运行的端口
 EXPOSE 7001
 
-CMD cd /app && \
-    poetry shell && \
-    poetry run uvicorn main:app --port 7001 --log-level debug
-
+# 运行应用程序的命令
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "7001"]
