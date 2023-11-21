@@ -1,12 +1,19 @@
 FROM node:20.9-bullseye-slim
 
+ARG VITE_WS_BACKEND_URL
+ENV VITE_WS_BACKEND_URL=${VITE_WS_BACKEND_URL}
+
 # Set the working directory in the container
 WORKDIR /app
 
 # Copy the current directory contents into the container at /app
 COPY ./frontend /app/
 
-RUN cd /app && yarn install && yarn run build
+# 把 VITE_WS_BACKEND_URL 写到.env 里
+RUN echo VITE_WS_BACKEND_URL=${VITE_WS_BACKEND_URL} > /app/.env && \
+    cd /app && \
+    yarn install && \
+    yarn run build
 
 # Expose port 5173 to access the server
 EXPOSE 8080
